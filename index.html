@@ -1,48 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>BaaS - Отлично</title>
+    <title>BaaS</title>
     <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .container { width: 100%; max-width: 500px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px; }
-    h3 { color: #333; margin-bottom: 20px; font-size: 24px; text-align: center; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: 0.3s; }
-    input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-    button#mainBtn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-    button#mainBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
-    button#mainBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .post { background: white; border: 1px solid #eaeaea; padding: 20px; margin-top: 15px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.3s; animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .post:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
-    .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .time { font-size: 12px; color: #999; background: #f5f5f5; padding: 4px 8px; border-radius: 4px; }
-    .post b { font-size: 18px; color: #333; }
-    .post p { color: #666; margin: 10px 0; font-size: 14px; word-break: break-all; }
-    .like-btn { background: #f0f0f0; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; color: #666; }
-    .like-btn:hover { background: #ff4757; color: white; transform: scale(1.05); }
-    .like-btn.liked { background: #ff4757; color: white; }
-    .stats { margin-top: 20px; text-align: center; color: white; font-size: 14px; }
-    .error-message { color: #ff4757; font-size: 12px; margin-top: 5px; display: none; }
+    body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
+    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
+    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
+    .like-btn:hover { background: #e2e6ea; }
+    .time { font-size: 11px; color: #999; float: right; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h3>📱 Cloud BaaS Platform</h3>
-    <input type="text" id="name" placeholder="Имя профиля (мин. 3 символа)">
+    <h3>Панель управления данных</h3>
+    <input type="text" id="name" placeholder="Имя профиля">
     <input type="email" id="email" placeholder="Рабочий Email">
-    <div class="error-message" id="errorMsg"></div>
-    <button id="mainBtn">🚀 Опубликовать в облако</button>
+    <button id="mainBtn">Опубликовать в облако</button>
 </div>
 
 <div id="feed" style="width: 100%; max-width: 500px;"></div>
-
-<div class="stats" id="stats">
-    Загрузка данных...
-</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -51,164 +32,59 @@
         serverTimestamp, updateDoc, doc, increment
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // КОНФИГУРАЦИЯ
     const firebaseConfig = {
-        apiKey: "AIzaSyDgUxR0Txafc_qA-rpdSzKn33265IfxsHU",
-        authDomain: "qazaq-a072e.firebaseapp.com",
-        projectId: "qazaq-a072e",
-        storageBucket: "qazaq-a072e.firebasestorage.app",
-        messagingSenderId: "47025480090",
-        appId: "1:47025480090:web:3dd74ff29bc0c149f39a23",
-        measurementId: "G-9TE97NWMB9"
-    };
-
+  apiKey: "AIzaSyAtIo0yCCK7N9RivQ3ThPOJPzBNwZkvM3g",
+  authDomain: "registering-a-web-application.firebaseapp.com",
+  projectId: "registering-a-web-application",
+  storageBucket: "registering-a-web-application.firebasestorage.app",
+  messagingSenderId: "421808358341",
+  appId: "1:421808358341:web:99b9682a26f9e8b68d81ac",
+  measurementId: "G-QH9NJLQ968"
+};
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Состояние приложения
-    let posts = [];
-    let likedPosts = new Set();
-
-    // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES) с защитой от дублей
-    window.processLike = async (id, button) => {
-        // Защита от повторного лайка (для UX)
-        if (likedPosts.has(id)) {
-            alert('Вы уже поставили лайк этому посту!');
-            return;
-        }
-        
+    window.processLike = async (id) => {
         const docRef = doc(db, "requests", id);
         try {
-            // Блокируем кнопку на время запроса
-            button.disabled = true;
-            
-            // Атомарный инкремент (правила безопасности разрешают только это)
             await updateDoc(docRef, { likes: increment(1) });
-            
-            // Добавляем в множество лайкнутых
-            likedPosts.add(id);
-            
-            // Визуальный эффект
-            button.classList.add('liked');
-            
-        } catch (error) {
-            console.error("Ошибка при обновлении лайка:", error);
-            alert('Ошибка безопасности: Не удалось поставить лайк. Проверьте правила Firestore.');
-        } finally {
-            button.disabled = false;
+        } catch (e) {
+            console.error("Validation Error:", e.message);
         }
     };
 
-    // МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
     document.getElementById('mainBtn').onclick = async () => {
         const btn = document.getElementById('mainBtn');
-        const nameInput = document.getElementById('name');
-        const emailInput = document.getElementById('email');
-        const errorMsg = document.getElementById('errorMsg');
-        
-        // Валидация на клиенте
-        if (nameInput.value.length <= 2) {
-            errorMsg.style.display = 'block';
-            errorMsg.textContent = 'Имя должно содержать минимум 3 символа';
-            return;
-        }
-        
-        if (!emailInput.value.includes('@') || !emailInput.value.includes('.')) {
-            errorMsg.style.display = 'block';
-            errorMsg.textContent = 'Введите корректный email';
-            return;
-        }
-        
-        errorMsg.style.display = 'none';
         btn.disabled = true;
-        btn.textContent = '⏳ Публикация...';
-        
         try {
             await addDoc(collection(db, "requests"), {
-                name: nameInput.value,
-                email: emailInput.value,
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
                 likes: 0,
                 timestamp: serverTimestamp()
             });
-            
-            // Очистка полей после успешной публикации
-            nameInput.value = "";
-            emailInput.value = "";
-            
+            document.getElementById('email').value = "";
         } catch (e) {
-            console.error("Firestore error:", e);
-            alert("❌ Ошибка безопасности: Данные отклонены сервером.\nПроверьте правила Firestore.");
+            alert("Ошибка безопасности: Данные отклонены сервером.");
         }
-        
         btn.disabled = false;
-        btn.textContent = '🚀 Опубликовать в облако';
     };
-
-    // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ с метриками
     const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-    
     onSnapshot(q, (snapshot) => {
         const feed = document.getElementById('feed');
-        const stats = document.getElementById('stats');
-        
         feed.innerHTML = "";
-        posts = [];
-        
-        let totalLikes = 0;
-        
         snapshot.forEach((doc) => {
             const data = doc.data();
-            posts.push({ id: doc.id, ...data });
-            
-            // Подсчет лайков для статистики
-            totalLikes += data.likes || 0;
-            
-            // Форматирование времени
-            let timeString = 'Только что';
-            if (data.timestamp) {
-                const date = data.timestamp.toDate();
-                timeString = date.toLocaleString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: '2-digit'
-                });
-            }
-            
             feed.innerHTML += `
-                <div class="post" id="post-${doc.id}">
-                    <div class="post-header">
-                        <b>${this.escapeHtml(data.name || 'Без имени')}</b>
-                        <span class="time">🕐 ${timeString}</span>
-                    </div>
-                    <p>📧 ${this.escapeHtml(data.email || 'Нет email')}</p>
-                    <button class="like-btn ${likedPosts.has(doc.id) ? 'liked' : ''}" 
-                            onclick="processLike('${doc.id}', this)"
-                            ${likedPosts.has(doc.id) ? 'disabled' : ''}>
-                        ❤️ ${data.likes || 0}
-                    </button>
+                <div class="post">
+                    <span class="time">${data.timestamp.toDate().toLocaleTimeString()} | '...'</span>
+                    <b>${data.name}</b>
+                    <p style="margin: 5px 0;">${data.email}</p>
+                    <button class="like-btn" onclick="processLike('${doc.id}')"> ${data.likes || 0}</button>
                 </div>
             `;
         });
-        
-        // Обновление статистики
-        if (posts.length === 0) {
-            stats.innerHTML = '📭 Нет данных. Создайте первую запись!';
-        } else {
-            stats.innerHTML = `📊 Всего записей: ${posts.length} | ❤️ Всего лайков: ${totalLikes}`;
-        }
     });
-
-    // Функция для защиты от XSS
-    window.escapeHtml = function(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    };
-
-    // Добавляем функцию в глобальную область
-    window.escapeHtml = window.escapeHtml;
 </script>
 </body>
 </html>
