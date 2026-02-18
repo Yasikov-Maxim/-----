@@ -2,16 +2,84 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>BaaS</title>
+    <title>BaaS - с лайками ⭐</title>
     <style>
     body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
     .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
     button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
-    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-    .like-btn:hover { background: #e2e6ea; }
-    .time { font-size: 11px; color: #999; float: right; }
+    button#mainBtn:hover { background: #0056b3; }
+    button#mainBtn:disabled { background: #ccc; cursor: not-allowed; }
+    
+    /* Обновленные стили для постов со звездочками */
+    .post { 
+        background: #fff; 
+        border: 1px solid #eaeaea; 
+        padding: 15px; 
+        margin-top: 15px; 
+        border-radius: 8px; 
+        width: 100%; 
+        max-width: 500px; 
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .post-info {
+        flex: 1;
+    }
+    
+    .post-info b {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 4px;
+        color: #333;
+    }
+    
+    .post-info p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .likes-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 15px;
+    }
+    
+    .star-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        color: #ffc107;
+        transition: transform 0.2s;
+        padding: 0;
+        line-height: 1;
+    }
+    
+    .star-btn:hover {
+        transform: scale(1.2);
+    }
+    
+    .likes-count {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        min-width: 25px;
+        text-align: center;
+    }
+    
+    .time { 
+        font-size: 12px; 
+        color: #999; 
+        min-width: 70px;
+        text-align: right;
+    }
+    
+    .error { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
@@ -20,6 +88,7 @@
     <h3>Панель управления данных</h3>
     <input type="text" id="name" placeholder="Имя профиля">
     <input type="email" id="email" placeholder="Рабочий Email">
+    <div class="error" id="errorMsg"></div>
     <button id="mainBtn">Опубликовать в облако</button>
 </div>
 
@@ -33,58 +102,130 @@
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyAtIo0yCCK7N9RivQ3ThPOJPzBNwZkvM3g",
-  authDomain: "registering-a-web-application.firebaseapp.com",
-  projectId: "registering-a-web-application",
-  storageBucket: "registering-a-web-application.firebasestorage.app",
-  messagingSenderId: "421808358341",
-  appId: "1:421808358341:web:99b9682a26f9e8b68d81ac",
-  measurementId: "G-QH9NJLQ968"
-};
+        apiKey: "AIzaSyAtIo0yCCK7N9RivQ3ThPOJPzBNwZkvM3g",
+        authDomain: "registering-a-web-application.firebaseapp.com",
+        projectId: "registering-a-web-application",
+        storageBucket: "registering-a-web-application.firebasestorage.app",
+        messagingSenderId: "421808358341",
+        appId: "1:421808358341:web:99b9682a26f9e8b68d81ac",
+        measurementId: "G-QH9NJLQ968"
+    };
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Функция для обработки лайков (звездочек)
     window.processLike = async (id) => {
         const docRef = doc(db, "requests", id);
         try {
             await updateDoc(docRef, { likes: increment(1) });
+            console.log("⭐ Звездочка добавлена!");
         } catch (e) {
             console.error("Validation Error:", e.message);
+            alert("Ошибка при добавлении звездочки: " + e.message);
         }
     };
 
+    // Обработчик кнопки публикации
     document.getElementById('mainBtn').onclick = async () => {
         const btn = document.getElementById('mainBtn');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        // Простая валидация
+        if (nameInput.value.length <= 2) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = 'Имя должно содержать минимум 3 символа';
+            return;
+        }
+        
+        if (!emailInput.value.includes('@') || !emailInput.value.includes('.')) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = 'Введите корректный email';
+            return;
+        }
+        
+        errorMsg.style.display = 'none';
         btn.disabled = true;
+        btn.textContent = 'Публикация...';
+        
         try {
             await addDoc(collection(db, "requests"), {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
+                name: nameInput.value,
+                email: emailInput.value,
                 likes: 0,
                 timestamp: serverTimestamp()
             });
-            document.getElementById('email').value = "";
+            
+            // Очистка полей
+            nameInput.value = "";
+            emailInput.value = "";
+            console.log("Данные успешно опубликованы!");
+            
         } catch (e) {
+            console.error("Ошибка при публикации:", e);
             alert("Ошибка безопасности: Данные отклонены сервером.");
         }
+        
         btn.disabled = false;
+        btn.textContent = 'Опубликовать в облако';
     };
+
+    // Real-time слушатель
     const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+    
     onSnapshot(q, (snapshot) => {
         const feed = document.getElementById('feed');
         feed.innerHTML = "";
+        
+        if (snapshot.empty) {
+            feed.innerHTML = '<div class="post" style="justify-content: center;">Нет данных. Создайте первую запись!</div>';
+            return;
+        }
+        
         snapshot.forEach((doc) => {
             const data = doc.data();
+            
+            // Безопасное отображение времени
+            let timeString = 'Только что';
+            if (data.timestamp) {
+                try {
+                    const date = data.timestamp.toDate();
+                    timeString = date.toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                } catch (e) {
+                    console.warn("Ошибка форматирования времени");
+                }
+            }
+            
             feed.innerHTML += `
                 <div class="post">
-                    <span class="time">${data.timestamp.toDate().toLocaleTimeString()} | '...'</span>
-                    <b>${data.name}</b>
-                    <p style="margin: 5px 0;">${data.email}</p>
-                    <button class="like-btn" onclick="processLike('${doc.id}')"> ${data.likes || 0}</button>
+                    <div class="post-info">
+                        <b>${escapeHtml(data.name || 'Без имени')}</b>
+                        <p>${escapeHtml(data.email || 'Нет email')}</p>
+                    </div>
+                    <div class="likes-container">
+                        <button class="star-btn" onclick="processLike('${doc.id}')">⭐</button>
+                        <span class="likes-count">${data.likes || 0}</span>
+                    </div>
+                    <div class="time">${timeString}</div>
                 </div>
             `;
         });
     });
+
+    // Функция для защиты от XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 </script>
+
 </body>
 </html>
