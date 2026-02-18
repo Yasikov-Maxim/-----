@@ -11,10 +11,74 @@
     button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
     button#mainBtn:hover { background: #0056b3; }
     button#mainBtn:disabled { background: #cccccc; cursor: not-allowed; }
-    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-    .like-btn:hover { background: #e2e6ea; }
-    .time { font-size: 11px; color: #999; float: right; }
+    
+    /* Стили для постов как на изображении */
+    .post { 
+        background: #fff; 
+        border: 1px solid #eaeaea; 
+        padding: 15px; 
+        margin-top: 15px; 
+        border-radius: 8px; 
+        width: 100%; 
+        max-width: 500px; 
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .post-info {
+        flex: 1;
+    }
+    
+    .post-info b {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 4px;
+        color: #333;
+    }
+    
+    .post-info p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .post-likes {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 15px;
+    }
+    
+    .star-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        color: #ffc107;
+        transition: transform 0.2s;
+        padding: 0 5px;
+    }
+    
+    .star-btn:hover {
+        transform: scale(1.2);
+    }
+    
+    .likes-count {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        min-width: 20px;
+        text-align: center;
+    }
+    
+    .post-time {
+        color: #999;
+        font-size: 12px;
+        min-width: 70px;
+        text-align: right;
+    }
+    
     .error { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
     </style>
 </head>
@@ -52,17 +116,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Функция для обработки лайков
+    // Функция для обработки лайков (звездочек)
     window.processLike = async (id) => {
         const docRef = doc(db, "requests", id);
         try {
             await updateDoc(docRef, { 
                 likes: increment(1) 
             });
-            console.log("Лайк успешно добавлен!");
+            console.log("Звездочка успешно добавлена!");
         } catch (e) {
-            console.error("Ошибка при добавлении лайка:", e.message);
-            alert("Не удалось поставить лайк. Проверьте правила безопасности.");
+            console.error("Ошибка при добавлении звездочки:", e.message);
+            alert("Не удалось поставить звездочку. Проверьте правила безопасности.");
         }
     };
 
@@ -120,7 +184,7 @@
         feed.innerHTML = "";
         
         if (snapshot.empty) {
-            feed.innerHTML = '<div class="post" style="text-align: center;">Нет данных. Создайте первую запись!</div>';
+            feed.innerHTML = '<div class="post" style="text-align: center; justify-content: center;">Нет данных. Создайте первую запись!</div>';
             return;
         }
         
@@ -131,7 +195,12 @@
             let timeString = 'Только что';
             if (data.timestamp) {
                 try {
-                    timeString = data.timestamp.toDate().toLocaleTimeString();
+                    const date = data.timestamp.toDate();
+                    timeString = date.toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
                 } catch (e) {
                     console.warn("Ошибка форматирования времени");
                 }
@@ -139,12 +208,15 @@
             
             feed.innerHTML += `
                 <div class="post">
-                    <span class="time">${timeString}</span>
-                    <b>${escapeHtml(data.name || 'Без имени')}</b>
-                    <p style="margin: 5px 0;">${escapeHtml(data.email || 'Нет email')}</p>
-                    <button class="like-btn" onclick="processLike('${doc.id}')">
-                        ❤️ ${data.likes || 0}
-                    </button>
+                    <div class="post-info">
+                        <b>${escapeHtml(data.name || 'Без имени')}</b>
+                        <p>${escapeHtml(data.email || 'Нет email')}</p>
+                    </div>
+                    <div class="post-likes">
+                        <button class="star-btn" onclick="processLike('${doc.id}')">⭐</button>
+                        <span class="likes-count">${data.likes || 0}</span>
+                    </div>
+                    <div class="post-time">${timeString}</div>
                 </div>
             `;
         });
