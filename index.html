@@ -64,6 +64,16 @@
                 timestamp: serverTimestamp()
             });
             
+            window.updateName = async (id, newName) => {
+        const docRef = doc(db, "requests", id);
+        try {
+            await updateDoc(docRef, { name: newName });
+            console.log("Имя обновлено:", newName);
+        } catch (e) {
+            console.error("Ошибка обновления имени:", e.message);
+        }
+    };
+            
             document.getElementById('email').value = "";
         } catch (e) {
             alert("Ошибка безопасности: Данные отклонены сервером.");
@@ -82,6 +92,7 @@
                     <b>${data.name}</b>
                     <p style="margin: 5px 0;">${data.email}</p>
                     <button class="like-btn" onclick="processLike('${doc.id}')"> 👍 ${data.likes || 0}</button>
+                    <button class="like-btn" onclick="deleteRequest('${doc.id}')">🗑 Удалить</button>
                 </div>
             `;
         });
