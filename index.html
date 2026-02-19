@@ -83,14 +83,17 @@ window.deleteRequest = async (id) => {
     }
 };
 
-// ===== Функция редактирования имени =====
-window.updateName = async (id, newName) => {
-    const docRef = doc(db, "requests", id);
-    try {
-        await updateDoc(docRef, { name: newName });
-        console.log("Имя обновлено:", newName);
-    } catch(e) {
-        console.error("Ошибка обновления имени:", e.message);
+// ===== Новая функция редактирования через prompt =====
+window.promptEdit = async (id, currentName) => {
+    const newName = prompt("Введите новое имя:", currentName);
+    if (newName && newName !== currentName) {
+        const docRef = doc(db, "requests", id);
+        try {
+            await updateDoc(docRef, { name: newName });
+            console.log("Имя обновлено:", newName);
+        } catch(e) {
+            console.error("Ошибка обновления имени:", e.message);
+        }
     }
 };
 
@@ -109,8 +112,7 @@ onSnapshot(q, snapshot => {
                 <p style="margin: 5px 0;">${data.email}</p>
                 <button class="like-btn" onclick="processLike('${docItem.id}')"> 👍 ${data.likes || 0}</button>
                 <button class="like-btn" onclick="deleteRequest('${docItem.id}')">🗑 Удалить</button>
-                <input type="text" id="edit-${docItem.id}" placeholder="Новое имя" style="margin-top:5px; width: 60%;">
-                <button class="like-btn" onclick="updateName('${docItem.id}', document.getElementById('edit-${docItem.id}').value)">✏️ Обновить имя</button>
+                <button class="like-btn" onclick="promptEdit('${docItem.id}', '${data.name.replace(/'/g, "\\'")}')">✏️ Редактировать имя</button>
             </div>
         `;
     });
