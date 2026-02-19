@@ -1,38 +1,35 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>BaaS</title>
-    <style>
-    body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
-    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-    .like-btn:hover { background: #e2e6ea; }
-    .time { font-size: 11px; color: #999; float: right; }
-    </style>
+<meta charset="UTF-8">
+<title>BaaS</title>
+<style>
+body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
+.post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
+.like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; margin-right:5px;}
+.like-btn:hover { background: #e2e6ea; }
+.time { font-size: 11px; color: #999; float: right; }
+</style>
 </head>
 <body>
 
 <div class="container">
-    <h3>Панель управления данных</h3>
-    <input type="text" id="name" placeholder="Имя профиля">
-    <input type="email" id="email" placeholder="Рабочий Email">
-    <button id="mainBtn">Опубликовать в облако</button>
+<h3>Панель управления данными</h3>
+<input type="text" id="name" placeholder="Имя профиля">
+<input type="email" id="email" placeholder="Рабочий Email">
+<button id="mainBtn">Опубликовать в облако</button>
 </div>
 
 <div id="feed" style="width: 100%; max-width: 500px;"></div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import {
-        getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-        serverTimestamp, updateDoc, doc, increment
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyAtIo0yCCK7N9RivQ3ThPOJPzBNwZkvM3g",
   authDomain: "registering-a-web-application.firebaseapp.com",
   projectId: "registering-a-web-application",
@@ -41,65 +38,85 @@
   appId: "1:421808358341:web:99b9682a26f9e8b68d81ac",
   measurementId: "G-QH9NJLQ968"
 };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
 
-    window.processLike = async (id) => {
-        const docRef = doc(db, "requests", id);
-        try {
-            await updateDoc(docRef, { likes: increment(1) });
-        } catch (e) {
-            console.error("Validation Error:", e.message);
-        }
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    document.getElementById('mainBtn').onclick = async () => {
-        const btn = document.getElementById('mainBtn');
-        btn.disabled = true;
-        try {
-            await addDoc(collection(db, "requests"), {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                likes: 0,
-                timestamp: serverTimestamp()
-            });
-            
-            window.updateName = async (id, newName) => {
-        const docRef = doc(db, "requests", id);
-        try {
-            await updateDoc(docRef, { name: newName });
-            console.log("Имя обновлено:", newName);
-        } catch (e) {
-            console.error("Ошибка обновления имени:", e.message);
-        }
-    };
-            
-            document.getElementById('email').value = "";
-        } catch (e) {
-            alert("Ошибка безопасности: Данные отклонены сервером.");
-        }
-        btn.disabled = false;
-    };
-    const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        const feed = document.getElementById('feed');
-        feed.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            feed.innerHTML += `
-                <div class="post">
-                    <span class="time">${data.timestamp.toDate().toLocaleTimeString()} | '...'</span>
-                    <b>${data.name}</b>
-                    <p style="margin: 5px 0;">${data.email}</p>
-                    <button class="like-btn" onclick="processLike('${doc.id}')"> 👍 ${data.likes || 0}</button>
-                    <button class="like-btn" onclick="deleteRequest('${doc.id}')">🗑 Удалить</button>
-                </div>
-            `;
+// ===== Функция добавления документа =====
+document.getElementById('mainBtn').onclick = async () => {
+    const btn = document.getElementById('mainBtn');
+    btn.disabled = true;
+    try {
+        await addDoc(collection(db, "requests"), {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            likes: 0,
+            timestamp: serverTimestamp()
         });
+        document.getElementById('name').value = "";
+        document.getElementById('email').value = "";
+    } catch(e) {
+        alert("Ошибка безопасности: Данные отклонены сервером.");
+        console.error(e);
+    }
+    btn.disabled = false;
+};
+
+// ===== Функция увеличения лайка =====
+window.processLike = async (id) => {
+    const docRef = doc(db, "requests", id);
+    try {
+        await updateDoc(docRef, { likes: increment(1) });
+    } catch(e) {
+        console.error("Ошибка лайка:", e.message);
+    }
+};
+
+// ===== Функция удаления документа =====
+window.deleteRequest = async (id) => {
+    const docRef = doc(db, "requests", id);
+    try {
+        await deleteDoc(docRef);
+        console.log("Документ удалён:", id);
+    } catch(e) {
+        console.error("Ошибка удаления:", e.message);
+    }
+};
+
+// ===== Функция редактирования имени =====
+window.updateName = async (id, newName) => {
+    const docRef = doc(db, "requests", id);
+    try {
+        await updateDoc(docRef, { name: newName });
+        console.log("Имя обновлено:", newName);
+    } catch(e) {
+        console.error("Ошибка обновления имени:", e.message);
+    }
+};
+
+// ===== Отображение данных в реальном времени =====
+const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+onSnapshot(q, snapshot => {
+    const feed = document.getElementById('feed');
+    feed.innerHTML = "";
+    snapshot.forEach(docItem => {
+        const data = docItem.data();
+        const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : "...";
+        feed.innerHTML += `
+            <div class="post">
+                <span class="time">${timestamp}</span>
+                <b>${data.name}</b>
+                <p style="margin: 5px 0;">${data.email}</p>
+                <button class="like-btn" onclick="processLike('${docItem.id}')"> 👍 ${data.likes || 0}</button>
+                <button class="like-btn" onclick="deleteRequest('${docItem.id}')">🗑 Удалить</button>
+                <input type="text" id="edit-${docItem.id}" placeholder="Новое имя" style="margin-top:5px; width: 60%;">
+                <button class="like-btn" onclick="updateName('${docItem.id}', document.getElementById('edit-${docItem.id}').value)">✏️ Обновить имя</button>
+            </div>
+        `;
     });
+});
 </script>
-</body>
-</html>
 
 </body>
 </html>
+
