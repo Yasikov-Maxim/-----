@@ -21,7 +21,7 @@
     .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
     .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .post-avatar { width: 30px; height: 30px; border-radius: 50%; }
-    .like-btn { cursor: pointer; border: none; background: #f89fa; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
+    .like-btn { cursor: pointer; border: none; background: #f89faf; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
     .time { font-size: 11px; color: #999; margin-left: auto; }
 
 </style>
@@ -29,11 +29,11 @@
 <body>
 
 <div id="authSection" class="container" style="max-width: 500px; text-align: center;">
-    <button id="loginBtn">Войти через Google </button>
-    <div id="userInfo" style="display: none;">class="auth-bar">
-    <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
-    <span id="userName" style="font-weight: bold;"></span>
-    <button id="logoutBtn" class="logout-btn">Выйти</button>
+    <button id="loginBtn">Войти через Google</button>
+    <div id="userInfo" class="auth-bar" style="display: none;">
+        <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
+        <span id="userName" style="font-weight: bold;"></span>
+        <button id="logoutBtn" class="logout-btn">Выйти</button>
     </div>
 </div>
 
@@ -131,7 +131,7 @@
                     <span class="time">${data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : ''}</span>
                 </div>
                 <p>${data.text || data.email}</p>
-                <button class="like-btn" onclick="processLike('${doc.id}')">👍${data.likes || 0}</button>
+                <button class="like-btn" onclick="processLine('${doc.id}')">👍${data.likes || 0}</button>
             </div>
             `;
         });
