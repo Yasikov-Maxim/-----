@@ -1,155 +1,230 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Облачное приложение</title>
-    <style>
-    body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    
-    /* Стили блока авторизации */
-    .auth-bar { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00bffa; }
-    
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    button { background: #007bfc; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    button:hover { background: #0056b3; }
-    button.disabled { background: #ccc; }
-    .logout-btn { background: #ff4757; padding: 8px 15px; width: auto; font-size: 14px; }
-    
-    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
-    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .post-avatar { width: 30px; height: 30px; border-radius: 50%; }
-    .like-btn { cursor: pointer; border: none; background: #f89fa; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
-    .time { font-size: 11px; color: #999; margin-left: auto; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Облачное приложение</title>
 
+<style>
+body {
+    font-family: Inter, sans-serif;
+    background: #f4f7f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.auth-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+button {
+    background: #007bfc;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.logout-btn {
+    background: #ff4757;
+}
+
+.post {
+    border: 1px solid #eaeaea;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.user {
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+.user:hover { background: #f1f1f1; }
+
+.msg {
+    padding: 6px 10px;
+    margin: 5px 0;
+    border-radius: 10px;
+    max-width: 70%;
+}
+.my { background: #007bfc; color: white; margin-left: auto; }
+.other { background: #eaeaea; }
 </style>
 </head>
+
 <body>
 
-<div id="authSection" class="container" style="max-width: 500px; text-align: center;">
+<div class="container">
     <button id="loginBtn">Войти через Google</button>
-    <div id="userInfo" class="auth-bar" style="display: none;">
-        <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
-        <span id="userName" style="font-weight: bold;"></span>
+
+    <div id="userInfo" class="auth-bar" style="display:none">
+        <img id="userPhoto" class="user-avatar">
+        <span id="userName"></span>
         <button id="logoutBtn" class="logout-btn">Выйти</button>
     </div>
 </div>
 
-<div id="messageForm" class="container" style="display: none;">
+<div id="messageForm" class="container" style="display:none">
     <h3>Создать запись</h3>
-    <input type="text" id="name" placeholder="Имя профиля" readonly>
-    <input type="email" id="email" placeholder="Ваш Email" readonly>
-    <input type="text" id="content" placeholder="Что у вас нового?">
-    <button id="mainBtn">Опубликовать в облако</button>
+    <input id="content" placeholder="Что у вас нового?">
+    <button id="mainBtn">Опубликовать</button>
 </div>
 
-<div id="feed" style="width: 100%; max-width: 500px;"></div>
-    
-    <!-- ===== ЛИЧНЫЕ СООБЩЕНИЯ ===== -->
+<div id="feed" class="container"></div>
+
+<!-- ЛИЧНЫЕ СООБЩЕНИЯ -->
 <div id="dmSection" class="container" style="display:none">
     <h3>Личные сообщения</h3>
     <div id="usersList"></div>
 </div>
 
 <div id="chatSection" class="container" style="display:none">
-    <h3 id="chatTitle">Чат</h3>
+    <h3 id="chatTitle"></h3>
     <div id="chatMessages" style="min-height:200px;"></div>
     <input id="dmInput" placeholder="Введите сообщение">
     <button id="sendDm">Отправить</button>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, query, orderBy,
+  onSnapshot, serverTimestamp, doc, updateDoc, increment,
+  setDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import {
+  getAuth, signInWithPopup, GoogleAuthProvider,
+  signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-    const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyAtIo0yCCK7N9RivQ3ThPOJPzBNwZkvM3g",
   authDomain: "registering-a-web-application.firebaseapp.com",
   projectId: "registering-a-web-application",
-  storageBucket: "registering-a-web-application.firebasestorage.app",
-  messagingSenderId: "421808358341",
-  appId: "1:421808358341:web:99b9682a26f9e8b68d81ac",
-  measurementId: "G-QH9NJLQ968"
 };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-    // --- ЛОГИКА АВТОРИЗАЦИИ ---
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userInfo = document.getElementById('userInfo');
-    const messageForm = document.getElementById('messageForm');
+loginBtn.onclick = () => signInWithPopup(auth, provider);
+logoutBtn.onclick = () => signOut(auth);
 
-    loginBtn.onclick = () => signInWithPopup(auth, provider);
-    logoutBtn.onclick = () => signOut(auth);
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        loginBtn.style.display = "none";
+        userInfo.style.display = "flex";
+        messageForm.style.display = "block";
+        dmSection.style.display = "block";
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            loginBtn.style.display = 'none';
-            userInfo.style.display = 'flex';
-            messageForm.style.display = 'block';
-            document.getElementById('userName').innerText = user.displayName;
-            document.getElementById('userPhoto').src = user.photoURL;
-            document.getElementById('name').value = user.displayName;
-            document.getElementById('email').value = user.email;
-        } else {
-            loginBtn.style.display = 'block';
-            userInfo.style.display = 'none';
-            messageForm.style.display = 'none';
+        userName.innerText = user.displayName;
+        userPhoto.src = user.photoURL;
+
+        await setDoc(doc(db, "users", user.uid), {
+            name: user.displayName,
+            email: user.email
+        });
+
+        loadUsers();
+    } else {
+        loginBtn.style.display = "block";
+        userInfo.style.display = "none";
+        messageForm.style.display = "none";
+        dmSection.style.display = "none";
+        chatSection.style.display = "none";
+    }
+});
+
+// ПОСТЫ
+mainBtn.onclick = async () => {
+    if (!content.value) return;
+    await addDoc(collection(db, "requests"), {
+        name: auth.currentUser.displayName,
+        text: content.value,
+        timestamp: serverTimestamp(),
+        likes: 0
+    });
+    content.value = "";
+};
+
+onSnapshot(query(collection(db, "requests"), orderBy("timestamp","desc")), snap => {
+    feed.innerHTML = "";
+    snap.forEach(d => {
+        feed.innerHTML += `<div class="post"><b>${d.data().name}</b><br>${d.data().text}</div>`;
+    });
+});
+
+// ЛИЧНЫЕ СООБЩЕНИЯ
+let chatUser = null;
+
+async function loadUsers() {
+    const snap = await getDocs(collection(db, "users"));
+    usersList.innerHTML = "";
+    snap.forEach(u => {
+        if (u.id !== auth.currentUser.uid) {
+            usersList.innerHTML += `<div class="user" onclick="openChat('${u.id}','${u.data().name}')">${u.data().name}</div>`;
         }
     });
+}
 
-    // --- ЛОГИКА РАБОТЫ С ДАННЫМИ ---
-    window.processLine = async (id) => {
-        await updateDoc(doc(db, "requests", id), { likes: increment(1) });
-    };
+window.openChat = (uid, name) => {
+    chatUser = uid;
+    chatSection.style.display = "block";
+    chatTitle.innerText = "Чат с " + name;
 
-    document.getElementById('mainBtn').onclick = async () => {
-        const content = document.getElementById('content').value;
-        if (!content) return alert("Введите текст сообщения");
-
-        try {
-            await addDoc(collection(db, "requests"), {
-                name: auth.currentUser.displayName,
-                email: auth.currentUser.email,
-                photo: auth.currentUser.photoURL,
-                text: content,
-                likes: 0,
-                timestamp: serverTimestamp()
-            });
-            document.getElementById('content').value = "";
-        } catch (e) {
-            alert("Ошибка безопасности! Проверьте правила (Rules) в Firebase.");
-        }
-    };
-
-    const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        const feed = document.getElementById('feed');
-        feed.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            feed.innerHTML += `
-            <div class="post">
-                <div class="post-header">
-                    <img src="${data.photo || 'https://via.placeholder.com/30'}" class="post-avatar">
-                    <b>${data.name}</b>
-                    <span class="time">${data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : ''}</span>
-                </div>
-                <p>${data.text || data.email}</p>
-                <button class="like-btn" onclick="processLine('${doc.id}')">👍${data.likes || 0}</button>
-            </div>
-            `;
+    onSnapshot(query(collection(db,"messages"),orderBy("timestamp")), snap => {
+        chatMessages.innerHTML = "";
+        snap.forEach(m => {
+            const d = m.data();
+            if ((d.from===auth.currentUser.uid && d.to===uid) || (d.from===uid && d.to===auth.currentUser.uid)) {
+                chatMessages.innerHTML += `<div class="msg ${d.from===auth.currentUser.uid?'my':'other'}">${d.text}</div>`;
+            }
         });
     });
+};
 
-    window.db = db; // Для тестов в консоли F12
+sendDm.onclick = async () => {
+    if (!dmInput.value || !chatUser) return;
+    await addDoc(collection(db,"messages"), {
+        from: auth.currentUser.uid,
+        to: chatUser,
+        text: dmInput.value,
+        timestamp: serverTimestamp()
+    });
+    dmInput.value="";
+};
 </script>
 
 </body>
